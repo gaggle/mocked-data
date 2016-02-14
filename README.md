@@ -7,7 +7,8 @@ Small module for exposing static data.
 
 Say you capture output from an API to use in tests,
 how do you use that data?
-WIth this module you just put the captured data in a folder structure
+WIth this module you just put the captured data in a folder structure 
+(see [`example`](https://github.com/gaggle/mocked-data/tree/master/example) folder)
 and access it via methods on an object.
 Supports **.json** and **.js** files.
 
