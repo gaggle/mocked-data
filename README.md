@@ -1,6 +1,7 @@
 # mocked-data
 [![Build Status](https://travis-ci.org/gaggle/mocked-data.svg?branch=master)](https://travis-ci.org/gaggle/mocked-data)
 [![Coverage Status](https://coveralls.io/repos/github/gaggle/mocked-data/badge.svg?branch=master)](https://coveralls.io/github/gaggle/mocked-data?branch=master)
+[![Dependency Status](https://david-dm.org/gaggle/mocked-data.svg)](https://david-dm.org/gaggle/mocked-data)
 
 Small module for exposing static data.
 
