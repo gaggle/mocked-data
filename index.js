@@ -37,8 +37,10 @@ var readfileFunc = function (path) {
       return _.merge(data, overrides || {})
     }
   }
-
-  var loader = {".json": readJSON, ".js": require.bind(require, path)}
+  var loader = {
+    ".json": readJSON,
+    ".js": function () { return eval(fs.readFileSync(path, "utf8")) }
+  }
   return loader[Path.extname(path)]()
 }
 
