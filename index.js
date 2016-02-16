@@ -5,7 +5,7 @@ var _ = require("lodash")
 var Path = require("path")
 
 var generateObject = function (rootpath) {
-  var fixtures = getFiles(rootpath, "**/*.json", "**/*.js")
+  var fixtures = getFiles(rootpath, "**/*.json", "**/*.js", "**/*.txt")
   var sorted = _.sortBy(fixtures, function (val) {
     return Path.dirname(val)
   })
@@ -50,9 +50,16 @@ var readfileFunc = function (path) {
       return _.merge(data, overrides || {})
     }
   }
+  var readTxt = function () {
+    return function () {
+      return fs.readFileSync(path, "utf8")
+    }
+  }
+
   var loader = {
     ".json": readJSON,
-    ".js": function () { return eval(fs.readFileSync(path, "utf8")) }
+    ".js": function () { return eval(fs.readFileSync(path, "utf8")) },
+    ".txt": readTxt
   }
   return loader[Path.extname(path)]()
 }

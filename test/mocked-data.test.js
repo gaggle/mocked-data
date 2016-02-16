@@ -20,66 +20,71 @@ describe("mocked-data", function () {
 
   it("should initialize", function () {
     mockfs({"data": {}})
-    expect(mockedData("./data")).to.be.an.object()
+    var obj = mockedData("./data")
+    expect(obj).to.be.an.object()
   })
 
-  it("should read .json or .js files", function () {
+  it("should read all formats", function () {
     mockfs({
-             "data/foo/bar.json": {},
-             "data/foo/baz.js": "module.exports = function() {return 'wee'}"
+             "data/foo/json.json": {},
+             "data/foo/js.js": "module.exports = function() {return 'wee'}",
+             "data/foo/txt.txt": "hello"
            })
     var obj = mockedData("./data")
-    expect(obj.foo.bar).to.be.a.function()
-    expect(obj.foo.baz).to.be.a.function()
+    expect(obj.foo.json).to.be.a.function()
+    expect(obj.foo.js).to.be.a.function()
+    expect(obj.foo.txt()).to.eql("hello")
   })
 
   it("should read `_` as naked call", function () {
-    mockfs({"data/foo/_.json": JSON.stringify({bar: false})})
-    var value = mockedData("./data").foo()
-    expect(value.bar).to.be.false()
+    mockfs({"data/foo/_.txt": "foo"})
+    var obj = mockedData("./data")
+    expect(obj.foo()).to.eql("foo")
   })
 
-  it("should generate a naked call if none is provided", function () {
-    mockfs({"data/foo/bar.json": ""})
+  it("should generate throwy calls where none are provided", function () {
+    mockfs({"data/foo/bar.txt": ""})
     var obj = mockedData("./data")
     expect(obj.foo).to.throw(/No root data.*/)
   })
 
   it("should deep override .json", function () {
     mockfs({"data/foo/_.json": JSON.stringify({bar: false})})
-    var value = mockedData("./data").foo({bar: true})
-    expect(value.bar).to.be.true()
+    var obj = mockedData("./data")
+    expect(obj.foo({bar: true}).bar).to.be.true()
   })
 
   it("should pass overrides to .js function", function () {
     mockfs({"data/foo/_.js": "module.exports = function(o) {return o}"})
-    var value = mockedData("./data").foo({bar: true})
-    expect(value.bar).to.be.true()
+    var obj = mockedData("./data")
+    expect(obj.foo({bar: true}).bar).to.be.true()
   })
 
   it("should return subdata", function () {
-    mockfs({"data/foo/subdata.json": JSON.stringify({})})
-    expect(mockedData("./data").foo.subdata).to.be.a.function()
+    mockfs({"data/foo/subdata.txt": "foo"})
+    var obj = mockedData("./data")
+    expect(obj.foo.subdata()).to.eql("foo")
   })
 
   it("should support nested subfolders", function () {
-    mockfs({"data/foo/bar/baz/_.json": JSON.stringify({})})
-    expect(mockedData("./data").foo.bar.baz()).to.eql({})
+    mockfs({"data/foo/bar/baz/_.txt": "foo"})
+    var obj = mockedData("./data")
+    expect(obj.foo.bar.baz()).to.eql("foo")
   })
 
   it("should support nested subdata", function () {
-    mockfs({"data/foo/bar/baz/data.json": JSON.stringify({})})
+    mockfs({"data/foo/bar/baz/data.txt": "foo"})
     var obj = mockedData("./data")
-    expect(obj.foo.bar.baz.data()).to.eql({})
+    expect(obj.foo.bar.baz.data()).to.eql("foo")
   })
 
   it("should support mixed subfolder depths", function () {
     mockfs({
-             "data/foo/bar/baz/data.json": JSON.stringify({}),
-             "data/foo/data.json": JSON.stringify({})
+             "data/foo/bar/baz/data.txt": "foo",
+             "data/foo/data.txt": "bar"
            })
     var obj = mockedData("./data")
-    expect(obj.foo.data).to.be.a.function()
-    expect(obj.foo.bar.baz.data).to.be.a.function()
+    expect(obj.foo.bar.baz.data()).to.eql("foo")
+    expect(obj.foo.data()).to.eql("bar")
   })
 })
