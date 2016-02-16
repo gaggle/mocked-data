@@ -4,25 +4,38 @@ var glob = require("glob")
 var _ = require("lodash")
 var Path = require("path")
 
-var generateObject = function (rootPath) {
+var generateObject = function (rootpath) {
+  var fixtures = getFiles(rootpath, "**/*.json", "**/*.js")
+  var sorted = _.sortBy(fixtures, function (val) {
+    return Path.dirname(val)
+  })
   var obj = {}
-  var fixtures = getFiles(rootPath, "**/*.json", "**/*.js")
-  fixtures.forEach(function (path) {
-    var leafdir = Path.basename(Path.dirname(path))
+  sorted.forEach(function (path) {
+    var leafdirs = Path.dirname(path).split(Path.sep)
+    var fullpath = Path.resolve(Path.join(rootpath, path))
+    leafdirs.reduce(function (previous, leaf) {
+      var p = previous ? previous + "." + leaf : leaf
+      _.set(obj, p, getRootFunc(fullpath))
+      return p
+    }, "")
+  })
+
+  sorted.forEach(function (path) {
+    var leafdirs = Path.dirname(path).replace(RegExp(Path.sep, "g"), ".")
     var basename = Path.basename(path, Path.extname(path))
-    var fullpath = Path.resolve(Path.join(rootPath, path))
-    if (basename == "_") {
-      obj[leafdir] = readfileFunc(fullpath)
-    } else {
-      if (!obj[leafdir]) obj[leafdir] = function () {
-        throw new Error("Root access not implemented, add a `_` file")
-      }
-      obj[leafdir][basename] = readfileFunc(fullpath)
-    }
+    var fullpath = Path.resolve(Path.join(rootpath, path))
+    _.set(obj, leafdirs + "." + basename, readfileFunc(fullpath))
   })
   return obj
 }
 
+var getRootFunc = function (path) {
+  var basename = Path.basename(path, Path.extname(path))
+  if (basename == "_") return readfileFunc(path)
+  return function () {
+    throw new Error("No root data, add a `_` file")
+  }
+}
 var getFiles = function (cwd /*, patterns... */) {
   var patterns = Array.prototype.slice.call(arguments).slice(1)
   return patterns.reduce(function (previous, val) {

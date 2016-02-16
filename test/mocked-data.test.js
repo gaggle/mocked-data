@@ -42,7 +42,7 @@ describe("mocked-data", function () {
   it("should generate a naked call if none is provided", function () {
     mockfs({"data/foo/bar.json": ""})
     var obj = mockedData("./data")
-    expect(obj.foo).to.throw(/Root access not implemented.*/)
+    expect(obj.foo).to.throw(/No root data.*/)
   })
 
   it("should deep override .json", function () {
@@ -60,5 +60,26 @@ describe("mocked-data", function () {
   it("should return subdata", function () {
     mockfs({"data/foo/subdata.json": JSON.stringify({})})
     expect(mockedData("./data").foo.subdata).to.be.a.function()
+  })
+
+  it("should support nested subfolders", function () {
+    mockfs({"data/foo/bar/baz/_.json": JSON.stringify({})})
+    expect(mockedData("./data").foo.bar.baz()).to.eql({})
+  })
+
+  it("should support nested subdata", function () {
+    mockfs({"data/foo/bar/baz/data.json": JSON.stringify({})})
+    var obj = mockedData("./data")
+    expect(obj.foo.bar.baz.data()).to.eql({})
+  })
+
+  it("should support mixed subfolder depths", function () {
+    mockfs({
+             "data/foo/bar/baz/data.json": JSON.stringify({}),
+             "data/foo/data.json": JSON.stringify({})
+           })
+    var obj = mockedData("./data")
+    expect(obj.foo.data).to.be.a.function()
+    expect(obj.foo.bar.baz.data).to.be.a.function()
   })
 })
