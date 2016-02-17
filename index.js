@@ -18,7 +18,7 @@ var generateObject = function (rootpath) {
       if (_.get(obj, p) === undefined) {
         var func
         if (p === leafdirs.join(".")) {
-          if(basename == "_") {
+          if (basename == "_") {
             var fullpath = Path.resolve(Path.join(rootpath, path))
             func = readfileFunc(fullpath)
           } else {
@@ -40,7 +40,8 @@ var generateObject = function (rootpath) {
   sorted.forEach(function (path) {
     var basename = Path.basename(path, Path.extname(path))
     if (basename === "_") return
-    var leafpath = Path.dirname(path).replace(new RegExp(Path.sep, "g"), ".") + "." + basename
+    var leafpath = Path.dirname(path).replace(new RegExp(Path.sep, "g"), ".") +
+                   "." + basename
     var fullpath = Path.resolve(Path.join(rootpath, path))
     _.set(obj, leafpath, readfileFunc(fullpath))
   })
@@ -59,9 +60,12 @@ var readfileFunc = function (path) {
     return eval(fs.readFileSync(p, "utf8"))
   }
   var readJSON = function (p) {
-    return function (overrides) {
+    return function (overrides, value) {
       var data = JSON.parse(fs.readFileSync(p, "utf8"))
-      return _.merge(data, overrides || {})
+      if (value === undefined)
+        return _.merge(data, overrides || {})
+      _.set(data, overrides, value)
+      return data
     }
   }
   var readTxt = function (p) {

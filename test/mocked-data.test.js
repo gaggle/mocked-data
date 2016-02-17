@@ -82,6 +82,12 @@ describe("mocked-data", function () {
     expect(obj.foo({bar: true}).bar).to.be.true()
   })
 
+  it("should support string+value to override .json", function () {
+    mockfs({"data/foo/_.json": JSON.stringify({bar: [{baz: false}]})})
+    var obj = mockedData("./data")
+    expect(obj.foo("bar[0].baz", true).bar[0].baz).to.be.true()
+  })
+
   it("should supprot not passing in .json overrides", function () {
     mockfs({"data/foo/_.json": JSON.stringify({bar: false})})
     var obj = mockedData("./data")
