@@ -13,15 +13,14 @@ var generateObject = function (rootpath) {
   sorted.forEach(function (path) {
     var leafdirs = Path.dirname(path).split(Path.sep)
     var fullpath = Path.resolve(Path.join(rootpath, path))
-    leafdirs.reduce(function (previous, leaf) {
-      var p = previous ? previous + "." + leaf : leaf
-      _.set(obj, p, getRootFunc(fullpath))
-      return p
-    }, "")
+    var leafpath = leafdirs.reduce(function (previous, leaf) {
+      return previous ? previous + "." + leaf : leaf
+    }, undefined)
+    _.set(obj, leafpath, getRootFunc(fullpath))
   })
 
   sorted.forEach(function (path) {
-    var leafdirs = Path.dirname(path).replace(RegExp(Path.sep, "g"), ".")
+    var leafdirs = Path.dirname(path).replace(new RegExp(Path.sep, "g"), ".")
     var basename = Path.basename(path, Path.extname(path))
     var fullpath = Path.resolve(Path.join(rootpath, path))
     _.set(obj, leafdirs + "." + basename, readfileFunc(fullpath))
@@ -44,22 +43,25 @@ var getFiles = function (cwd /*, patterns... */) {
 }
 
 var readfileFunc = function (path) {
-  var readJSON = function () {
+  var readJS = function (p) {
+    return eval(fs.readFileSync(p, "utf8"))
+  }
+  var readJSON = function (p) {
     return function (overrides) {
-      var data = JSON.parse(fs.readFileSync(path, "utf8"))
+      var data = JSON.parse(fs.readFileSync(p, "utf8"))
       return _.merge(data, overrides || {})
     }
   }
-  var readTxt = function () {
+  var readTxt = function (p) {
     return function () {
-      return fs.readFileSync(path, "utf8")
+      return fs.readFileSync(p, "utf8")
     }
   }
 
   var loader = {
-    ".json": readJSON,
-    ".js": function () { return eval(fs.readFileSync(path, "utf8")) },
-    ".txt": readTxt
+    ".js": readJS.bind(this, path),
+    ".json": readJSON.bind(this, path),
+    ".txt": readTxt.bind(this, path)
   }
   return loader[Path.extname(path)]()
 }

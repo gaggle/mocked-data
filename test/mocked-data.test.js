@@ -42,6 +42,13 @@ describe("mocked-data", function () {
     expect(obj.foo()).to.eql("foo")
   })
 
+  it("should add naked call and also expose subdata", function () {
+    mockfs({"data/foo/_.txt": "foo", "data/foo/bar/_.txt": "bar"})
+    var obj = mockedData("./data")
+    expect(obj.foo()).to.eql("foo")
+    expect(obj.foo.bar()).to.eql("bar")
+  })
+
   it("should generate throwy calls where none are provided", function () {
     mockfs({"data/foo/bar.txt": ""})
     var obj = mockedData("./data")
