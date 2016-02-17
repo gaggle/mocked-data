@@ -11,30 +11,42 @@ var generateObject = function (rootpath) {
   })
   var obj = {}
   sorted.forEach(function (path) {
+    var basename = Path.basename(path, Path.extname(path))
     var leafdirs = Path.dirname(path).split(Path.sep)
-    var fullpath = Path.resolve(Path.join(rootpath, path))
-    var leafpath = leafdirs.reduce(function (previous, leaf) {
-      return previous ? previous + "." + leaf : leaf
+    leafdirs.reduce(function (previous, leaf) {
+      var p = previous ? previous + "." + leaf : leaf
+      if (_.get(obj, p) === undefined) {
+        var func
+        if (p === leafdirs.join(".")) {
+          if(basename == "_") {
+            var fullpath = Path.resolve(Path.join(rootpath, path))
+            func = readfileFunc(fullpath)
+          } else {
+            func = function () {
+              throw new Error("No root data, add a '_' file")
+            }
+          }
+        } else {
+          func = function () {
+            throw new Error("No root data, add a '_' file")
+          }
+        }
+        _.set(obj, p, func)
+      }
+      return p
     }, undefined)
-    _.set(obj, leafpath, getRootFunc(fullpath))
   })
 
   sorted.forEach(function (path) {
-    var leafdirs = Path.dirname(path).replace(new RegExp(Path.sep, "g"), ".")
     var basename = Path.basename(path, Path.extname(path))
+    if (basename === "_") return
+    var leafpath = Path.dirname(path).replace(new RegExp(Path.sep, "g"), ".") + "." + basename
     var fullpath = Path.resolve(Path.join(rootpath, path))
-    _.set(obj, leafdirs + "." + basename, readfileFunc(fullpath))
+    _.set(obj, leafpath, readfileFunc(fullpath))
   })
   return obj
 }
 
-var getRootFunc = function (path) {
-  var basename = Path.basename(path, Path.extname(path))
-  if (basename == "_") return readfileFunc(path)
-  return function () {
-    throw new Error("No root data, add a `_` file")
-  }
-}
 var getFiles = function (cwd /*, patterns... */) {
   var patterns = Array.prototype.slice.call(arguments).slice(1)
   return patterns.reduce(function (previous, val) {

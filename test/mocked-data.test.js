@@ -43,10 +43,31 @@ describe("mocked-data", function () {
   })
 
   it("should add naked call and also expose subdata", function () {
-    mockfs({"data/foo/_.txt": "foo", "data/foo/bar/_.txt": "bar"})
+    mockfs({
+             "data/foo/_.txt": "foo",
+             "data/foo/bar/baz/_.txt": "bar"
+           })
+    var obj = mockedData("./data")
+    expect(obj.foo()).to.eql("foo")
+    expect(obj.foo.bar.baz()).to.eql("bar")
+  })
+
+  it("should add subdatas without overwriting naked calls", function () {
+    mockfs({
+             "data/foo/_.txt": "foo",
+             "data/foo/bar.txt": "bar"
+           })
     var obj = mockedData("./data")
     expect(obj.foo()).to.eql("foo")
     expect(obj.foo.bar()).to.eql("bar")
+  })
+
+  it("should insert throwy calls", function () {
+    mockfs({"data/foo/bar/baz/_.txt": "ham"})
+    var obj = mockedData("./data")
+    expect(obj.foo).to.throw(/No root data.*/)
+    expect(obj.foo.bar).to.throw(/No root data.*/)
+    expect(obj.foo.bar.baz()).to.eql("ham")
   })
 
   it("should generate throwy calls where none are provided", function () {
@@ -59,6 +80,12 @@ describe("mocked-data", function () {
     mockfs({"data/foo/_.json": JSON.stringify({bar: false})})
     var obj = mockedData("./data")
     expect(obj.foo({bar: true}).bar).to.be.true()
+  })
+
+  it("should supprot not passing in .json overrides", function () {
+    mockfs({"data/foo/_.json": JSON.stringify({bar: false})})
+    var obj = mockedData("./data")
+    expect(obj.foo().bar).to.be.false()
   })
 
   it("should pass overrides to .js function", function () {
