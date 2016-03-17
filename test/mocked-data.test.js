@@ -104,7 +104,7 @@ describe("mocked-data", function () {
     expect(res.ham[0].spam).to.be.true()
   })
 
-  it("should supprot not passing in .json overrides", function () {
+  it("should support not passing in .json overrides", function () {
     mockfs({"data/foo/_.json": JSON.stringify({bar: false})})
     var obj = mockedData("./data")
     expect(obj.foo().bar).to.be.false()
