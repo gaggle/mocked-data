@@ -77,15 +77,31 @@ describe("mocked-data", function () {
   })
 
   it("should deep override .json", function () {
-    mockfs({"data/foo/_.json": JSON.stringify({bar: false})})
+    mockfs({"data/foo/_.json": JSON.stringify({bar: {baz: false}})})
     var obj = mockedData("./data")
-    expect(obj.foo({bar: true}).bar).to.be.true()
+    expect(obj.foo({bar: {baz: true}}).bar.baz).to.be.true()
   })
 
   it("should support string+value to override .json", function () {
     mockfs({"data/foo/_.json": JSON.stringify({bar: [{baz: false}]})})
     var obj = mockedData("./data")
     expect(obj.foo("bar[0].baz", true).bar[0].baz).to.be.true()
+  })
+
+  it("should support list of string+value pairs", function () {
+    mockfs({
+             "data/foo/_.json": JSON.stringify({
+                                                 bar: [{baz: false}],
+                                                 ham: [{spam: false}]
+                                               })
+           })
+    var obj = mockedData("./data")
+    var res = obj.foo([
+                        ["bar[0].baz", true],
+                        ["ham[0].spam", true]
+                      ])
+    expect(res.bar[0].baz).to.be.true()
+    expect(res.ham[0].spam).to.be.true()
   })
 
   it("should supprot not passing in .json overrides", function () {

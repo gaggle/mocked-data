@@ -62,9 +62,15 @@ var readfileFunc = function (path) {
   var readJSON = function (p) {
     return function (overrides, value) {
       var data = JSON.parse(fs.readFileSync(p, "utf8"))
-      if (value === undefined)
-        return _.merge(data, overrides || {})
-      _.set(data, overrides, value)
+      if (overrides && value) {
+        _.set(data, overrides, value)
+      } else if (_.isArray(overrides)) {
+        overrides.forEach(function (pair) {
+          _.set.bind(this, data).apply(this, pair)
+        })
+      } else if (overrides && value == undefined) {
+        _.merge(data, overrides)
+      }
       return data
     }
   }
